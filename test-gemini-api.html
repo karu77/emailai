@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Key Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #27ae60;
+        }
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+        }
+        .loading {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Gemini API Key Tester</h1>
+        
+        <div class="form-group">
+            <label for="apiKey">Your Gemini API Key:</label>
+            <input type="text" id="apiKey" placeholder="AIzaSy..." value="AIzaSyDqQxa6NS2luOPS_pHzg8xppR8myWGWxPA">
+        </div>
+        
+        <div class="form-group">
+            <label for="model">Model to Test:</label>
+            <select id="model" style="width: 100%; padding: 12px; border-radius: 8px; font-size: 16px;">
+                <option value="gemini-2.5-flash">gemini-2.5-flash (Latest & Fastest)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro (Latest & Most Powerful)</option>
+                <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental)</option>
+                <option value="gemini-2.0-flash">gemini-2.0-flash (Stable)</option>
+                <option value="gemini-1.5-pro">gemini-1.5-pro (Reliable)</option>
+                <option value="gemini-1.5-flash">gemini-1.5-flash (Fast)</option>
+            </select>
+        </div>
+        
+        <button onclick="testAPI()" id="testBtn">🧪 Test API Key</button>
+        
+        <div id="status" class="status"></div>
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const model = document.getElementById('model').value;
+            const testBtn = document.getElementById('testBtn');
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+            
+            if (!apiKey) {
+                alert('Please enter your API key');
+                return;
+            }
+            
+            // Show loading state
+            testBtn.disabled = true;
+            testBtn.textContent = '🔄 Testing...';
+            status.textContent = 'Testing API key...';
+            result.style.display = 'none';
+            
+            const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+            const requestBody = {
+                contents: [{
+                    parts: [{
+                        text: "Hello! Please respond with 'API test successful' if you can see this message."
+                    }]
+                }]
+            };
+            
+            try {
+                console.log('🔍 Testing Gemini API...');
+                console.log('URL:', url);
+                console.log('Model:', model);
+                console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+                console.log('Request body:', requestBody);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+                
+                let responseData;
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    responseData = { error: { message: 'Invalid JSON response' } };
+                }
+                
+                if (response.ok && !responseData.error) {
+                    // Success!
+                    const generatedText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || 'No text generated';
+                    
+                    status.textContent = '✅ API Key is Valid!';
+                    result.className = 'result success';
+                    result.style.display = 'block';
+                    result.textContent = `🎉 SUCCESS! Your API key is working perfectly!
+
+📋 Test Details:
+• Model: ${model}
+• Status: ${response.status} OK
+• API Key: ${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}
+
+🤖 AI Response:
+"${generatedText}"
+
+✅ Your API key is valid and ready to use in the Gmail AI Assistant extension!
+`;
+                } else {
+                    // Error
+                    const errorMessage = responseData.error?.message || 'Unknown error';
+                    const errorCode = responseData.error?.code || response.status;
+                    
+                    status.textContent = '❌ API Key Test Failed';
+                    result.className = 'result error';
+                    result.style.display = 'block';
+                    result.textContent = `❌ API TEST FAILED
+
+📋 Error Details:
+• Model: ${model}
+• Status: ${response.status}
+• Error Code: ${errorCode}
+• Error Message: ${errorMessage}
+
+🔧 Possible Solutions:
+1. Get a new API key from: https://makersuite.google.com/app/apikey
+2. Check if the API key is expired
+3. Verify the API key is correct
+4. Check if you have API quotas available
+
+💡 The extension will still work with the fallback system (Hugging Face → Mock)
+`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                
+                status.textContent = '❌ Network Error';
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.textContent = `❌ NETWORK ERROR
+
+📋 Error Details:
+• Error: ${error.message}
+
+🔧 Possible Solutions:
+1. Check your internet connection
+2. Try again later
+3. Check if the API endpoint is accessible
+
+💡 The extension will still work with the fallback system (Hugging Face → Mock)
+`;
+            } finally {
+                // Reset button
+                testBtn.disabled = false;
+                testBtn.textContent = '🧪 Test API Key';
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Gemini API Key Tester loaded!');
+        });
+    </script>
+</body>
+</html> 
